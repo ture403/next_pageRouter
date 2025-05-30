@@ -1,22 +1,38 @@
 import SearchableLayout from "@/components/searchable-layout";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import BookItem from "@/components/book-item";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import fetchBooks from "@/lib/fetch-books";
+import { useRouter } from "next/router";
+import { BookData } from "@/types";
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-    const q = context.query.q;
-    const searchBooks = await fetchBooks(q as string);
+// export const getStaticProps = async (context: GetStaticPropsContext) => {
+//     const q = context.query.q;
+//     const searchBooks = await fetchBooks(q as string);
 
-    return {
-        props: { searchBooks },
+//     return {
+//         props: { searchBooks },
+//     };
+// };
+
+export default function Page() {
+    const [book, setBooks] = useState<BookData[]>([]);
+    const router = useRouter();
+    const q = router.query.q;
+
+    const fetchSearchResult = async () => {
+        const data = await fetchBooks(q as string);
+        setBooks(data);
     };
-};
 
-export default function Page({ searchBooks }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+    useEffect(() => {
+        if (q) {
+            fetchSearchResult();
+        }
+    }, [q]);
+
     return (
         <div>
-            {searchBooks.map((book) => (
+            {book.map((book) => (
                 <BookItem key={book.id} {...book} />
             ))}
         </div>
